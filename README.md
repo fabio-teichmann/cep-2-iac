@@ -12,7 +12,7 @@ Creating and reproducing infrastructure and cloud environments
 3. config files can come in native tf syntax (`.tf`) or JSON (`.tf.json`)
 
 
-## Useful commands
+###Useful commands
 - `terraform init` -- initializes working directory
 - `terraform plan` -- compares current state to current configuration (does not make changes!)
 - `terraform validate` -- validates the syntax of config files (automatically done by `plan` and `apply`)
@@ -28,3 +28,11 @@ Environment variables in TerraForm need two things:
 
 The variable can be accessed using `var.{variable name}` within the config script.
 
+> [!IMPORTANT]
+> environment variables have the lowest precedence
+
+
+### Variables
+Usually, kept in a separate file `variables.tf`. Values are accessible in module the same way as the environment variables. Additionally, the file `terraform.tfvars` can be used to set variables (act kind of like env vars). If the desired variable (in config file) does not exist in this file, it will look in `variables.tf` for any default definitions. If that's also not available, the user will be prompted when applying the infrastructure.
+
+When using `terraform plan/apply`, variable inputs can be overwritten using the `-var="{variable_name}={value}` tag.
