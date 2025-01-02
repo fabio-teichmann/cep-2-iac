@@ -7,8 +7,6 @@ terraform {
   }
 }
 
-variable "AWS_ACCESS_KEY_CEP2" { type = string }
-variable "AWS_SECRET_KEY_CEP2" { type = string }
 # Configure the AWS Provider
 provider "aws" {
   region = "eu-central-1"
@@ -17,9 +15,18 @@ provider "aws" {
   secret_key = var.AWS_SECRET_KEY_CEP2
 }
 
-resource "aws_vpc" "cep-2" {
-  cidr_block = "10.0.0.0/16"
+resource "aws_vpc" "vcp_cep_2" {
+  cidr_block = var.vpc_cidr_block
   tags = {
-    "name" = "main VPC"
+    "Name" = "cep-2"
+  }
+}
+
+resource "aws_subnet" "web" {
+  vpc_id            = aws_vpc.vcp_cep_2.id
+  cidr_block        = var.web_subnet_cidr
+  availability_zone = "eu-central-1a"
+  tags = {
+    "Name" = "Web subnet"
   }
 }
