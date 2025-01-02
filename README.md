@@ -10,11 +10,16 @@ Creating and reproducing infrastructure and cloud environments
   - distinction between root modules and other modules; entrypoint usually `main.tf`
 2. Providers: where infrastructure should be managed (usually a cloud provider or Kubernetes, etc.)
 3. config files can come in native tf syntax (`.tf`) or JSON (`.tf.json`)
-4. commands:
-  - `terraform init` -- initializes working directory
-  - `terraform plan` -- compares current state to current configuration (does not make changes!)
-  - `terraform validate` -- 
-  - `terraform apply` --
+
+
+## Useful commands
+- `terraform init` -- initializes working directory
+- `terraform plan` -- compares current state to current configuration (does not make changes!)
+- `terraform validate` -- validates the syntax of config files (automatically done by `plan` and `apply`)
+- `terraform apply` -- creates all infrastructure elements that are required to create the current configuration (difference between current and desired state)
+- `terraform destroy` -- deletes resources listed in the configuration
+    - ` -target {general resource name}.{resource name from config}` --> destroys selected resource only
+- `terraform fmt` -- formats config files
 
 ### Env Vars
 Environment variables in TerraForm need two things:

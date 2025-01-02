@@ -17,9 +17,9 @@ provider "aws" {
   secret_key = var.AWS_SECRET_KEY_CEP2
 }
 
-resource "aws_vpc" "cep-2" {
+resource "aws_vpc" "vcp_cep_2" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    "name" = "main VPC"
+    "Name" = "cep-2"
   }
 }
