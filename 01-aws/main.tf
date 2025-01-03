@@ -84,8 +84,22 @@ resource "aws_key_pair" "test_ssh_key" {
   public_key = file(var.ssh_public_key)
 }
 
+# data source
+data "aws_ami" "latest_amazon_linux2" {
+  owners      = ["amazon"]
+  most_recent = true # optional
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-kernel-*-x86_64-gp2"]
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
 resource "aws_instance" "my_vm" {
-  ami                         = "ami-071f0796b00a3a89d"
+  ami                         = data.aws_ami.latest_amazon_linux2.id # dynamically choose AMI's for different region
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.web.id
   vpc_security_group_ids      = [aws_default_security_group.default_sg.id]
