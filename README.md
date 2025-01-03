@@ -36,3 +36,23 @@ The variable can be accessed using `var.{variable name}` within the config scrip
 Usually, kept in a separate file `variables.tf`. Values are accessible in module the same way as the environment variables. Additionally, the file `terraform.tfvars` can be used to set variables (act kind of like env vars). If the desired variable (in config file) does not exist in this file, it will look in `variables.tf` for any default definitions. If that's also not available, the user will be prompted when applying the infrastructure.
 
 When using `terraform plan/apply`, variable inputs can be overwritten using the `-var="{variable_name}={value}` tag.
+
+
+## AWS EC2 Instances
+
+### SSH keys
+To log into a running instance, one way is to use SSH keypairs. Keys can be generated (locally) using:
+```bash
+ssh-keygen -t rsa -b 2048 -C 'test key' -N '' -f ~/.ssh/ test_key
+```
+`-t` - type
+`-b` - number of bytes
+`-C` - comment (optional)
+`-N` - encryption phrase (optional / if empty no encryption)
+`-f` - alternative location for key generation
+
+Once generated, the access needs to be changed using `chmod 400 {private_key}`.
+
+
+> [!IMPORTANT]
+> The **public** key needs to be copied to the server for ssh connections. Also, the instance itself needs to have a public IP (`associate_public_ip_address = true`).

@@ -16,3 +16,5 @@ variable "web_subnet_cidr" {
   description = "CIDR block for subnet"
   type        = string
 }
+
+variable "ssh_public_key" { type = string }

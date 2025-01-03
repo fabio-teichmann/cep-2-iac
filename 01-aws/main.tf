@@ -77,3 +77,21 @@ resource "aws_default_security_group" "default_sg" {
     "Name" = "default sg"
   }
 }
+
+# key-pair resource for automation
+resource "aws_key_pair" "test_ssh_key" {
+  key_name   = "testing_ssh_key"
+  public_key = file(var.ssh_public_key)
+}
+
+resource "aws_instance" "my_vm" {
+  ami                         = "ami-071f0796b00a3a89d"
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.web.id
+  vpc_security_group_ids      = [aws_default_security_group.default_sg.id]
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.test_ssh_key.key_name
+  tags = {
+    "Name" = "ec2 - Amazon Linux 2"
+  }
+}
