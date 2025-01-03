@@ -30,3 +30,68 @@ resource "aws_subnet" "web" {
     "Name" = "Web subnet"
   }
 }
+
+# internet gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vcp_cep_2.id
+  tags = {
+    "Name" = "${var.vpc_name} igw"
+  }
+}
+
+# route table
+resource "aws_default_route_table" "vpc_default_rt" {
+  default_route_table_id = aws_vpc.vcp_cep_2.default_route_table_id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+  tags = {
+    "Name" = "deafult rt"
+  }
+}
+
+# security group
+resource "aws_default_security_group" "default_sg" {
+  vpc_id = aws_vpc.vcp_cep_2.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # any protocol
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    "Name" = "default sg"
+  }
+}
+
+# key-pair resource for automation
+resource "aws_key_pair" "test_ssh_key" {
+  key_name   = "testing_ssh_key"
+  public_key = file(var.ssh_public_key)
+}
+
+resource "aws_instance" "my_vm" {
+  ami                         = "ami-071f0796b00a3a89d"
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.web.id
+  vpc_security_group_ids      = [aws_default_security_group.default_sg.id]
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.test_ssh_key.key_name
+  tags = {
+    "Name" = "ec2 - Amazon Linux 2"
+  }
+}
