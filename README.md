@@ -46,6 +46,16 @@ Can be used to dynamically apply AMI's (have different IDs across regions).
 Used to export structured data about resources. Recommended to keep in separate file.
 
 
+### State
+Stores bindings between configuration file and real-life state. Automatically generated/updated when run `terraform apply/destroy`. Stored in JSON format.
+
+Use `terraform state list` to see resources and their names saved in the state. Using `terraform show` we can assess the state using the CLI (e.g. `grep`).
+
+Can use `-replace {resource}` flag to `terraform -apply` to specifically replace a resource (destroy and recreate). This can be useful, when the system is not functioning properly.
+
+> [!IMPORTANT]
+> The local state will **contain all sensitive information in clear text**. Thus, never add to repo or share otherwise.
+
 
 ## AWS EC2 Instances
 
