@@ -57,6 +57,12 @@ Can use `-replace {resource}` flag to `terraform -apply` to specifically replace
 > The local state will **contain all sensitive information in clear text**. Thus, never add to repo or share otherwise.
 
 
+### Logs
+Use env vars:
+- `export TF_LOG=DEBUG`
+- `export TF_LOG_PATH={file location and name}.log`
+
+
 ## AWS EC2 Instances
 
 ### SSH keys
@@ -75,3 +81,24 @@ Once generated, the access needs to be changed using `chmod 400 {private_key}`.
 
 > [!IMPORTANT]
 > The **public** key needs to be copied to the server for ssh connections. Also, the instance itself needs to have a public IP (`associate_public_ip_address = true`).
+
+
+### Initialization / start-up scripts (automation)
+Instead of manually logging into an instance to set it up properly (e.g. install software), this should also be provided automatically when the infrastructure is provisioned. There are multiple ways to achieve this:
+
+1. using `user_data` attribute
+2. using `cloud-init` (industry standard)
+3. using an open-source tool like Packer
+4. using Provisioners
+
+#### `user_data` attribute
+Passes commands to cloud provider which runs them on instance. Viewable in AWS console. Ideomatic and native to cloud provider.
+
+
+#### cloud-init
+Standard for customizing instances. Runs on most Linux distributions and cloud providers. Can run per-instance or per-boot configurations.
+
+
+#### Provisioners
+> [!WARNING]
+> Should be a last resort and used with care!  
