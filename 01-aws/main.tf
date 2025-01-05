@@ -67,6 +67,12 @@ resource "aws_default_security_group" "default_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -105,6 +111,13 @@ resource "aws_instance" "my_vm" {
   vpc_security_group_ids      = [aws_default_security_group.default_sg.id]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.test_ssh_key.key_name
+  #   user_data                   = <<EOF
+  #   #!/bin/bash
+  # sudo yum -y update && sudo yum -y install httpd
+  # sudo systemctl start httpd && sudo systemctl enable httpd
+  # sudo echo "<h1>Deployed via TerraForm</h1>" > /var/www/html/index.html
+  #   EOF
+  user_data = file("entry-script.sh")
   tags = {
     "Name" = "ec2 - Amazon Linux 2"
   }
