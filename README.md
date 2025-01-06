@@ -37,6 +37,86 @@ Usually, kept in a separate file `variables.tf`. Values are accessible in module
 
 When using `terraform plan/apply`, variable inputs can be overwritten using the `-var="{variable_name}={value}` tag.
 
+There are two types of vatiables in TerraForm:
+1. simple: `number`, `string`, `bool`, `null`
+2. complex:
+  - collection types: `list`, `map` (like py dict), `set`
+  - structural types: `tuple`, `object`
+
+
+### Looping (`count` / `for_each`)
+Count (using lists) can cause issues since lists are ordered. Eliminating an element in between may cause an error and/or undesired behavior.
+Count can be used with every resource.
+
+> [!NOTE]
+> helpful in-built functions for handling: `element()` and `length()`
+
+
+### Dynamic blocks
+Can be used with:
+- resource
+- data
+- provider
+- provisioner
+
+Allows to dynamically generate multiple elements of a resource without repeating the block itself (e.g. multiple ingress rules for the same SG).
+
+
+### Conditional expressions
+Kinda replacement for if/else in TerraForm.
+
+```tf
+variable "env" {
+  type = string
+  default = "test"
+}
+
+# main.tf
+resource "xyz" "prod-foo" {
+  # ...
+  count = var.env == "prod" ? 1:0
+}
+```
+
+
+### Locals
+Named values that can be referred to in config files. They do not change value. Only available in current module (locally scoped).
+
+```tf
+# locals.tf
+locals {
+  key = value
+  ...
+  owner = "DevOps Team"
+  common_tags = {
+    Name = "dev"
+    Environment = "development"
+    Version = 1.10
+  }
+}
+
+# main.tf
+resource ... {
+  tags = local.common_tags
+}
+```
+
+
+### Built-in functions
+[Documentation](https://developer.hashicorp.com/terraform/language/functions)
+
+
+### Splat expressions
+Lists, sets, tuples
+
+Example:
+```tf
+output "private_addresses" {
+  value = aws_instance.server[*].private_ip
+}
+
+```
+
 
 ### Data sources
 Can be used to dynamically apply AMI's (have different IDs across regions).
