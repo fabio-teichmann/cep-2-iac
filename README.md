@@ -37,6 +37,12 @@ Usually, kept in a separate file `variables.tf`. Values are accessible in module
 
 When using `terraform plan/apply`, variable inputs can be overwritten using the `-var="{variable_name}={value}` tag.
 
+There are two types of vatiables in TerraForm:
+1. simple: `number`, `string`, `bool`, `null`
+2. complex:
+  - collection types: `list`, `map` (like py dict), `set`
+  - structural types: `tuple`, `object`
+
 
 ### Data sources
 Can be used to dynamically apply AMI's (have different IDs across regions).
