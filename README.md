@@ -44,6 +44,14 @@ There are two types of vatiables in TerraForm:
   - structural types: `tuple`, `object`
 
 
+### Looping (`count` / `for_each`)
+Count (using lists) can cause issues since lists are ordered. Eliminating an element in between may cause an error and/or undesired behavior.
+Count can be used with every resource.
+
+> [!NOTE]
+> helpful in-built functions for handling: `element()` and `length()`
+
+
 ### Data sources
 Can be used to dynamically apply AMI's (have different IDs across regions).
 
