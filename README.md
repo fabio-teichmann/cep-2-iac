@@ -1,6 +1,16 @@
 # cep-2-iac
 Creating and reproducing infrastructure and cloud environments
 
+# TL;DR
+
+## Recommended workflow
+- Backend & State Lock
+  - provision infrastructure for state lock (S3 + DynamoDB)
+  - ensure versioning and encryption are enabled (!)
+  - ensure DynamoDB has `LockID` of type `string` (!)
+- configure `backend` to use configured infrastructure --> use **partial configuration**
+- 
+
 
 ## Terraform basics
 
@@ -182,3 +192,54 @@ Standard for customizing instances. Runs on most Linux distributions and cloud p
 #### Provisioners
 > [!WARNING]
 > Should be a last resort and used with care!  
+
+
+
+## TerraForm Backends and Remote State Management
+The state file is created/stored locally and reflects all recent changes to the configuration. To avoid complications and conflicts that could arise from differing configuration states, TerraForm offers **Backends** (store states remotely). Default backend is local. TerraForm supports a number of different storage locations as backend options - those are called [work spaces](https://developer.hashicorp.com/terraform/language/state/workspaces).
+
+### Using work spaces
+To configure a work space, we need to add a block to the `terraform {...}` config block:
+
+```
+# example for amazon s3 bucket
+terraform {
+  backend "s3" {
+    bucket = "mybucket"
+    key    = "path/to/my/key" # where the file is written to
+    region = "us-east-1"
+    profile = "test-user"
+  }
+}
+```
+
+> [!NOTE]
+> The recommended way is to use a partial configuration; meaning the `backend` block will be mostly empty and missing values are supplied at `init`. E.g. `terraform init -backend-config="path-to-be-config"`.
+
+By default, the S3 bucket does not enforce a state lock. To achieve this, we need to add a DynamoDB table to the S3 configuration (see [State Locking](https://developer.hashicorp.com/terraform/language/backend/s3#state-locking)):
+
+```
+# example for amazon s3 bucket
+terraform {
+  backend "s3" {
+    bucket = "mybucket"
+    key    = "path/to/my/key" # where the file is written to
+    region = "us-east-1"
+    profile = "test-user"
+    dynamodb_table = "table_name"
+  }
+}
+```
+
+## Security best practices
+Secret values should never appear in clear text in the configuration files as those files will be checked-in into Git. I circumvented this in the beginning by using (local) environment variables and terraform variables.
+
+
+> [!IMPORTANT]
+> Keep in mind, that shell commands are stored in the shell's `history`(!). I.e. if a secret appears in `export ...` in clear text, it will show in the history as well. To avoid this security issue, type an extra whitespace before a command ` export ...`.
+
+
+The state file by default shows srcrets in clear text. Hence, it is of vital importance to store the statefile(s) in an encrypted manner (both at rest and in transit) to avoid corruption and undesired access.
+
+### Secret manager
+There are several options for a secret manager that will ensure security and encryption of secrets. E.g. HashiCorp Vault (25 secrets free), AWS Secrets Manager (paid), etc.
