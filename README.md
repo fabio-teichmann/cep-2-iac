@@ -234,6 +234,9 @@ terraform {
 ## Security best practices
 Secret values should never appear in clear text in the configuration files as those files will be checked-in into Git. I circumvented this in the beginning by using (local) environment variables and terraform variables.
 
+> [!NOTE]
+> I learned there is another even more convenient way for authenticating to AWS with the secret keys: using `profile` argument in the `provider` block and set it to the desired user. That user has to be defined in the aws config files (`~/.aws/config` and `~/.aws/credentials`).
+
 
 > [!IMPORTANT]
 > Keep in mind, that shell commands are stored in the shell's `history`(!). I.e. if a secret appears in `export ...` in clear text, it will show in the history as well. To avoid this security issue, type an extra whitespace before a command ` export ...`.
@@ -243,3 +246,23 @@ The state file by default shows srcrets in clear text. Hence, it is of vital imp
 
 ### Secret manager
 There are several options for a secret manager that will ensure security and encryption of secrets. E.g. HashiCorp Vault (25 secrets free), AWS Secrets Manager (paid), etc.
+
+
+## TerraForm Modules
+A set of configuration file(s) in a single directory are called Module. Modules organize and encapsulate functionality of a configuration. There are two types: (1) local modules, and (2) remote modules. Refers to the location of the config files.
+
+```
+root module
+|-- child module 1
+|-- child module 2
+|-- ...
+...
+```
+
+Modules in root can be used using the `module` block and they need a re-init (!):
+```
+module "mod-name" {
+  source = "path/to/module"
+}
+```
+Modules can be parameterized to provide more flexibility. To achieve this, the relevant parameters inside the module (configuration) need to be set to variables (e.g. in the `variables.tf` file of that module). The same variable names can be set in the root module with desired values. Parameters that are not set in root, will deviate to the defined default. **If no default is specified the parameter is mandatory to be set in root**.
