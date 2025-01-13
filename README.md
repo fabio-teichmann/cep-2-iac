@@ -280,3 +280,7 @@ To do that, define `output` blocks for relevant parameters that need to be passe
 
 > [!IMPORTANT]
 > When the root configuration is run, filepaths are evaluated from that modules position.
+
+
+### TerraForm registry
+Instead of writing each module by oneself, the [TerraForm Registry](registry.terraform.io) can be leveraged to import pre-built modules. These modules need to be customized to the individual use case.
