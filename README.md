@@ -263,6 +263,20 @@ Modules in root can be used using the `module` block and they need a re-init (!)
 ```
 module "mod-name" {
   source = "path/to/module"
+  var_name = value
+  ...
 }
 ```
 Modules can be parameterized to provide more flexibility. To achieve this, the relevant parameters inside the module (configuration) need to be set to variables (e.g. in the `variables.tf` file of that module). The same variable names can be set in the root module with desired values. Parameters that are not set in root, will deviate to the defined default. **If no default is specified the parameter is mandatory to be set in root**.
+
+
+### Accessing child module outputs
+Especially, when we need to refer to/access a dynamically generated attribute of a resource while it's created - e.g. the ID of a vpc - we need to access that value from the child module where the resource is defined (child module).
+
+To do that, define `output` blocks for relevant parameters that need to be passed down to root. In root, use `module.{module_name}.{output_name}` to access the parameter.
+
+> [!NOTE]
+> One child module **cannot** use the outputs of another child module(!). These need to be passed up through root.
+
+> [!IMPORTANT]
+> When the root configuration is run, filepaths are evaluated from that modules position.
