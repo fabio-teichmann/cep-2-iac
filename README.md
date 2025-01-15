@@ -4,6 +4,7 @@ Creating and reproducing infrastructure and cloud environments
 # TL;DR
 
 ## Recommended workflow
+- create user profile specific to TF access needs (not admin)
 - Backend & State Lock
   - provision infrastructure for state lock (S3 + DynamoDB)
   - ensure versioning and encryption are enabled (!)
@@ -12,7 +13,7 @@ Creating and reproducing infrastructure and cloud environments
 - 
 
 
-## Terraform basics
+# TerraForm
 
 1. Module-approach: 
   - all `.tf` (config) files in the same folder will be run together
@@ -22,71 +23,57 @@ Creating and reproducing infrastructure and cloud environments
 3. config files can come in native tf syntax (`.tf`) or JSON (`.tf.json`)
 
 
-###Useful commands
+## Command workflow
 - `terraform init` -- initializes working directory
 - `terraform plan` -- compares current state to current configuration (does not make changes!)
-- `terraform validate` -- validates the syntax of config files (automatically done by `plan` and `apply`)
 - `terraform apply` -- creates all infrastructure elements that are required to create the current configuration (difference between current and desired state)
 - `terraform destroy` -- deletes resources listed in the configuration
     - ` -target {general resource name}.{resource name from config}` --> destroys selected resource only
 - `terraform fmt` -- formats config files
 
-### Env Vars
-Environment variables in TerraForm need two things:
-1. in the config file it needs to be declared as a `variable` (with type)
-2. the name of the variable needs to be prefixed by `TF_VAR_` at declaration
+> [!NOTE]
+> Changes in the backend or modules used in the configuration will require to re-run `terraform init` to include those changes in the root module.
 
-The variable can be accessed using `var.{variable name}` within the config script.
+
+## State
+Stores bindings between configuration file and real-life state. Automatically generated/updated when run `terraform apply/destroy`. Stored in JSON format.
+
+Use `terraform state list` to see resources and their names saved in the state. Using `terraform show` we can assess the state using the CLI (e.g. `grep`).
+
+Can use `-replace {resource}` flag to `terraform -apply` to specifically replace a resource (destroy and recreate). This can be useful, when the system is not functioning properly.
 
 > [!IMPORTANT]
-> Environment variables have the lowest precedence
+> The local state will **contain all sensitive information in clear text**. Thus, never add to repo or share otherwise.
 
 
-### Variables
-Usually, kept in a separate file `variables.tf`. Values are accessible in module the same way as the environment variables. Additionally, the file `terraform.tfvars` can be used to set variables (act kind of like env vars). If the desired variable (in config file) does not exist in this file, it will look in `variables.tf` for any default definitions. If that's also not available, the user will be prompted when applying the infrastructure.
+## Variables
+There are 3 classes of variables in terraform:
+1. `variable "name" {}`: can change with different inputs to the configuration. Defining a default value is optional but might be enforced when applying the configuration. Are referenced as `var.name`
+2. `locals { var1 = "" }`: similar to global variables, static per configuration. Referenced as `local.var1`
+3. `output "name" {}`: similar to return values in a classic function. Can be used to reference values from a module within the root or use them between modules. Referenced as `output.name`
+
+Usually, variable definitions are kept in a separate file `variables.tf`. Values are accessible in a module the same way as the environment variables. Additionally, the file `terraform.tfvars` can be used to set variables. If the desired variable (in config file) does not exist in this file, it will look in `variables.tf` for any default definitions. If that's also not available, the user will be prompted when applying the infrastructure. Variables in child modules that don't have a default are mandatory to define in root.
 
 When using `terraform plan/apply`, variable inputs can be overwritten using the `-var="{variable_name}={value}` tag.
 
-There are two types of vatiables in TerraForm:
+
+### Variable types
+There are two types of variables in TerraForm:
 1. simple: `number`, `string`, `bool`, `null`
 2. complex:
   - collection types: `list`, `map` (like py dict), `set`
   - structural types: `tuple`, `object`
 
 
-### Looping (`count` / `for_each`)
-Count (using lists) can cause issues since lists are ordered. Eliminating an element in between may cause an error and/or undesired behavior.
-Count can be used with every resource.
+### Env Vars
+Environment variables in TerraForm need two things:
+1. in the config file it needs to be declared as a `variable` (with type)
+2. the name of the environment variable needs to be prefixed by `TF_VAR_`
 
-> [!NOTE]
-> helpful in-built functions for handling: `element()` and `length()`
+The variable can be accessed using `var.{variable name}` within the config script.
 
-
-### Dynamic blocks
-Can be used with:
-- resource
-- data
-- provider
-- provisioner
-
-Allows to dynamically generate multiple elements of a resource without repeating the block itself (e.g. multiple ingress rules for the same SG).
-
-
-### Conditional expressions
-Kinda replacement for if/else in TerraForm.
-
-```tf
-variable "env" {
-  type = string
-  default = "test"
-}
-
-# main.tf
-resource "xyz" "prod-foo" {
-  # ...
-  count = var.env == "prod" ? 1:0
-}
-```
+> [!IMPORTANT]
+> Environment variables have the lowest precedence
 
 
 ### Locals
@@ -112,11 +99,52 @@ resource ... {
 ```
 
 
-### Built-in functions
+### Output values
+Used to export structured data about resources. Recommended to keep in separate file.
+
+
+
+## Looping (`count` / `for_each`)
+Count (using lists) can cause issues since lists are ordered. Eliminating an element in between may cause an error and/or undesired behavior.
+Count can be used with every resource.
+
+> [!NOTE]
+> helpful in-built functions for handling: `element()` and `length()`
+
+
+## Dynamic blocks
+Can be used with:
+- resource
+- data
+- provider
+- provisioner
+
+Allows to dynamically generate multiple elements of a resource without repeating the block itself (e.g. multiple ingress rules for the same SG).
+
+
+## Conditional expressions
+Kinda replacement for if/else in TerraForm.
+
+```tf
+variable "env" {
+  type = string
+  default = "test"
+}
+
+# main.tf
+resource "xyz" "prod-foo" {
+  # ...
+  count = var.env == "prod" ? 1:0
+}
+```
+
+
+
+## Built-in functions
 [Documentation](https://developer.hashicorp.com/terraform/language/functions)
 
 
-### Splat expressions
+## Splat expressions
 Lists, sets, tuples
 
 Example:
@@ -128,26 +156,11 @@ output "private_addresses" {
 ```
 
 
-### Data sources
+## Data sources
 Can be used to dynamically apply AMI's (have different IDs across regions).
 
 
-### Output values
-Used to export structured data about resources. Recommended to keep in separate file.
-
-
-### State
-Stores bindings between configuration file and real-life state. Automatically generated/updated when run `terraform apply/destroy`. Stored in JSON format.
-
-Use `terraform state list` to see resources and their names saved in the state. Using `terraform show` we can assess the state using the CLI (e.g. `grep`).
-
-Can use `-replace {resource}` flag to `terraform -apply` to specifically replace a resource (destroy and recreate). This can be useful, when the system is not functioning properly.
-
-> [!IMPORTANT]
-> The local state will **contain all sensitive information in clear text**. Thus, never add to repo or share otherwise.
-
-
-### Logs
+## Logs
 Use env vars:
 - `export TF_LOG=DEBUG`
 - `export TF_LOG_PATH={file location and name}.log`
