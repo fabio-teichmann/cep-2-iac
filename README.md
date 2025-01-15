@@ -5,6 +5,7 @@ Creating and reproducing infrastructure and cloud environments
 
 ## Recommended workflow
 - create user profile specific to TF access needs (not admin)
+- use file structure to represent multiple environments (dev, uat, prod, etc.)
 - Backend & State Lock
   - provision infrastructure for state lock (S3 + DynamoDB)
   - ensure versioning and encryption are enabled (!)
@@ -297,3 +298,69 @@ To do that, define `output` blocks for relevant parameters that need to be passe
 
 ### TerraForm registry
 Instead of writing each module by oneself, the [TerraForm Registry](registry.terraform.io) can be leveraged to import pre-built modules. These modules need to be customized to the individual use case.
+
+
+## Working with multiple environments
+Two approaches: (1) **Workspaces** - i.e. using multiple named sections within a single backend, and (2) **File Structure** - i.e. the directory layout provides separation.
+
+### Workspaces
+`terraform workspace list` 
+
+| :plus: Pros | :minus: Cons |
+| :-: | :-: |
+| easy to get started | prone to human error |
+| convenient `terraform.workspace` expression | state stored within same backend (access can't be made granular) |
+| minimizes code duplication | codebase doesn't show deployment configurations unambiguously |
+
+
+### File structure
+
+| :plus: Pros | :minus: Cons |
+| :-: | :-: |
+| can isolate different backends (security - permissions can be handled independently) | multiple `terraform apply`s required |
+| codebase **fully represents** deployed state | more code duplication but can be minimized with modules |
+
+Depending on the use case, we may want to further break out components in environments:
+```
+|--- _modules
+|  |--- compute_module
+|  |  |--- main.tf
+|  |  |--- variables.tf
+|  |--- networking_module
+|  |  |--- main.tf
+|  |  |--- variables.tf
+|
+|--- dev
+|  |--- compute_module
+|  |  |--- main.tf
+|  |  |--- variables.tf
+|  |--- networking_module
+|  |  |--- main.tf
+|  |  |--- variables.tf
+|
+|--- prod
+|  |--- compute_module
+|  |  |--- main.tf
+|  |  |--- variables.tf
+|  |--- networking_module
+|  |  |--- main.tf
+|  |  |--- variables.tf
+```
+
+It is possible to reference resources across configurations using `terraform_remote_state`
+
+
+## Testing
+
+Static checks
+1. built-in
+  - `terraform fmt`, `terraform validate/plan`
+  - custom validation rules
+2. external
+  - tflint
+  - checkov, terrascan, tfsec, snyk, terraform-compliance
+  - Terraform Sentinel (enterprise only)
+
+**Automated testing** with bash/shell scripting. --> hacky (!)
+
+**Automated testing** with [Terratest](https://terratest.gruntwork.io/) --> (available in Go)
