@@ -348,3 +348,19 @@ Depending on the use case, we may want to further break out components in enviro
 ```
 
 It is possible to reference resources across configurations using `terraform_remote_state`
+
+
+## Testing
+
+Static checks
+1. built-in
+  - `terraform fmt`, `terraform validate/plan`
+  - custom validation rules
+2. external
+  - tflint
+  - checkov, terrascan, tfsec, snyk, terraform-compliance
+  - Terraform Sentinel (enterprise only)
+
+**Automated testing** with bash/shell scripting. --> hacky (!)
+
+**Automated testing** with [Terratest](https://terratest.gruntwork.io/) --> (available in Go)
